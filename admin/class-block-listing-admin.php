@@ -52,9 +52,8 @@ class Block_Listing_Admin {
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
 
-		add_action('admin_menu', array($this, 'add_plugin_admin_menu'));
-		// Adding filter to add settings link
-		add_filter('plugin_action_links_' . plugin_basename(__FILE__), array($this, 'add_settings_link_to_plugins_page'));
+		add_action('admin_menu', array($this, 'bl_add_plugin_admin_menu'));
+		add_filter('plugin_action_links_' . BLOCK_LISTING_BASENAME, array($this, 'bl_apd_settings_link') );
 	}
 
 	/**
@@ -103,21 +102,24 @@ class Block_Listing_Admin {
 
 	}
 
-	public function add_plugin_admin_menu() {
+	public function bl_add_plugin_admin_menu() {
 		add_menu_page(
 			'Block Listing Settings', // Page title
 			'Block Listing', // Menu title
 			'manage_options', // Capability
 			'block-listing-settings', // Menu slug
-			array($this, 'display_plugin_admin_page'), // Function to display the admin page
-			'dashicons-admin-generic', // Icon URL
-			6 // Position
+			array($this, 'bl_display_plugin_admin_page'), // Function to display the admin page
+			'dashicons-admin-generic'
 		);
 	}
 
-	public function display_plugin_admin_page() {
+	public function bl_display_plugin_admin_page() {
 		include plugin_dir_path(__FILE__) . 'partials/block-listing-admin-display.php';
 	}
 
-
+	public function bl_apd_settings_link($links) {
+		$settings_link = '<a href="' . admin_url('options-general.php?page=block-listing-settings') . '">Settings</a>';
+		array_unshift($links, $settings_link);
+		return $links;
+	}
 }
