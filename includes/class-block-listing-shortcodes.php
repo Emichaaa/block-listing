@@ -89,7 +89,7 @@ class Block_Listing_Shortcodes {
 
 			$output = "<div class='block-listing' style='padding: 40px; display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: flex-start; gap: 32px'>". $output . "</div>";
 
-			return !empty($output) ? $output : 'No blocks found.';
+			return !empty($output) ? $output : __( 'No blocks found.', 'block-listing' );
 		}
 	}
 
@@ -101,7 +101,7 @@ class Block_Listing_Shortcodes {
 // Helper function to format the output of blocks in a styled table with page titles and IDs as separate columns
 	private function format_blocks_output($post_ids, $blocks) {
 		// Fetch the post title for each post ID
-		$post_title = ( $post_ids ? get_the_title($post_ids) : "Unique blocks for this parameters");
+		$post_title = ( $post_ids ? get_the_title($post_ids) : __( 'Unique blocks for this parameters', 'block-listing' ));
 
 		// Initialize the table with headers for Post Title, Post ID, and Block Name
 		$output = '<table style="width:450px; border-collapse: collapse; border: 1px solid #ccc; margin-top: 10px; font-family: Arial, sans-serif;">';

@@ -280,6 +280,7 @@ class Block_Listing {
 				'post_status'    => 'publish',
 				'posts_per_page' => -1,
 				'fields'         => 'ids',
+				'suppress_filters' => true,
 			);
 
 			$query = new WP_Query($args);
