@@ -111,10 +111,33 @@ class Block_Listing_Admin {
 			array($this, 'bl_display_plugin_admin_page'), // Function to display the admin page
 			'dashicons-admin-generic'
 		);
+
+		// Add Kitchen Sink submenu
+		add_submenu_page(
+			'block-listing-settings', // Parent slug
+			__('Kitchen Sink', 'block-listing'), // Page title
+			__('Kitchen Sink', 'block-listing'), // Menu title
+			'manage_options', // Capability
+			'block-listing-kitchen-sink', // Menu slug
+			array($this, 'bl_display_kitchen_sink_page') // Function to display the page
+		);
 	}
 
 	public function bl_display_plugin_admin_page() {
 		include plugin_dir_path(__FILE__) . 'partials/block-listing-admin-display.php';
+	}
+
+	public function bl_display_kitchen_sink_page() {
+		// Enqueue block editor styles for proper preview rendering
+		wp_enqueue_style('wp-block-library');
+		wp_enqueue_style('wp-block-library-theme');
+		
+		// Enqueue theme styles if available
+		if (function_exists('wp_enqueue_block_style')) {
+			wp_enqueue_style('global-styles');
+		}
+		
+		include plugin_dir_path(__FILE__) . 'partials/block-listing-kitchen-sink-display.php';
 	}
 
 	public function bl_apd_settings_link($links) {

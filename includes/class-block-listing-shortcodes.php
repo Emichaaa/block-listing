@@ -96,6 +96,58 @@ class Block_Listing_Shortcodes {
 	// Method to register the shortcode
 	public function register_shortcodes() {
 		add_shortcode('bl_display_block_list', array($this, 'bl_display_block_list_shortcode'));
+		add_shortcode('kitchen_sink', array($this, 'bl_shortcode_kitchen_sink'));
+	}
+
+	/**
+	 * Shortcode to display Kitchen Sink on frontend
+	 *
+	 * @since    2.0.0
+	 * @param    array    $atts    Shortcode attributes
+	 * @return   string   HTML output
+	 */
+	public function bl_shortcode_kitchen_sink($atts) {
+		// Parse attributes
+		$atts = shortcode_atts(array(
+			'show_blocks' => 'yes',
+			'show_custom_blocks' => 'yes',
+			'show_patterns' => 'yes',
+			'show_reusable' => 'yes',
+			'show_colors' => 'yes',
+			'show_fonts' => 'yes',
+			'show_classes' => 'yes'
+		), $atts, 'kitchen_sink');
+
+		// Enqueue block styles for proper preview rendering
+		wp_enqueue_style('wp-block-library');
+		wp_enqueue_style('wp-block-library-theme');
+		
+		// Enqueue theme styles if available
+		if (function_exists('wp_enqueue_block_style')) {
+			wp_enqueue_style('global-styles');
+		}
+
+		// Start output buffering
+		ob_start();
+
+		// Include the frontend template
+		$block_listing = new Block_Listing();
+
+		// Get all data
+		$data = array(
+			'all_blocks' => ($atts['show_blocks'] === 'yes') ? $block_listing->bl_get_all_site_blocks() : array(),
+			'custom_blocks' => ($atts['show_custom_blocks'] === 'yes') ? $block_listing->bl_get_custom_blocks() : array(),
+			'all_patterns' => ($atts['show_patterns'] === 'yes') ? $block_listing->bl_get_all_patterns() : array(),
+			'reusable_blocks' => ($atts['show_reusable'] === 'yes') ? $block_listing->bl_get_reusable_blocks_with_usage() : array(),
+			'theme_colors' => ($atts['show_colors'] === 'yes') ? $block_listing->bl_get_theme_colors() : array(),
+			'theme_font_sizes' => ($atts['show_fonts'] === 'yes') ? $block_listing->bl_get_theme_font_sizes() : array(),
+			'theme_classes' => ($atts['show_classes'] === 'yes') ? $block_listing->bl_get_theme_css_classes() : array()
+		);
+
+		// Include the frontend template
+		include plugin_dir_path(dirname(__FILE__)) . 'public/partials/block-listing-kitchen-sink-public.php';
+
+		return ob_get_clean();
 	}
 
 // Helper function to format the output of blocks in a styled table with page titles and IDs as separate columns
