@@ -48,14 +48,22 @@ $theme_classes = $block_listing->bl_get_theme_css_classes();
             <div class="bl-section-header-with-button">
                 <div>
                     <h2><span class="dashicons dashicons-block-default"></span> <?php echo __('All Blocks Used', 'block-listing'); ?></h2>
-                    <p class="section-description"><?php echo sprintf(__('Total: %d unique blocks', 'block-listing'), count($all_blocks)); ?></p>
+                    <p class="section-description">
+                        <span id="bl-blocks-count-text"><?php echo sprintf(__('Total: %d unique blocks', 'block-listing'), count($all_blocks)); ?></span>
+                        <span id="bl-blocks-loaded-text" style="display:none; margin-left: 10px; color: #2271b1;"></span>
+                    </p>
                 </div>
                 <button id="bl-export-blocks-csv" class="button button-primary bl-export-btn">
                     <span class="dashicons dashicons-download"></span> <?php echo __('Export to CSV', 'block-listing'); ?>
                 </button>
             </div>
-            <div class="bl-items-container">
+            <div class="bl-items-container" id="bl-blocks-container" data-loaded="0">
+                <div class="bl-loading-initial" style="text-align: center; padding: 40px; color: #666;">
+                    <span class="dashicons dashicons-update-alt bl-spin" style="font-size: 32px; width: 32px; height: 32px;"></span>
+                    <p><?php echo __('Loading blocks...', 'block-listing'); ?></p>
+                </div>
                 <?php if (!empty($all_blocks)): ?>
+                    <div id="bl-blocks-list" style="display:none;">
                     <?php foreach ($all_blocks as $block_name => $block_data): ?>
                         <div class="bl-block-with-pages">
                             <div class="bl-block-header">
@@ -116,9 +124,15 @@ $theme_classes = $block_listing->bl_get_theme_css_classes();
                             </div>
                         </div>
                     <?php endforeach; ?>
+                    </div>
                 <?php else: ?>
                     <p class="no-items"><?php echo __('No blocks found.', 'block-listing'); ?></p>
                 <?php endif; ?>
+                <div id="bl-load-more-container" style="display:none; text-align: center; padding: 20px;">
+                    <button id="bl-load-more-blocks" class="button button-secondary">
+                        <span class="dashicons dashicons-update-alt"></span> <?php echo __('Load More Blocks', 'block-listing'); ?>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -441,8 +455,11 @@ $theme_classes = $block_listing->bl_get_theme_css_classes();
 </div>
 
 <script type="text/javascript">
-    var blExportData = {
+    var blData = {
         ajaxUrl: '<?php echo admin_url('admin-ajax.php'); ?>',
-        nonce: '<?php echo wp_create_nonce('bl_export_blocks_nonce'); ?>'
+        exportNonce: '<?php echo wp_create_nonce('bl_export_blocks_nonce'); ?>',
+        blocksNonce: '<?php echo wp_create_nonce('bl_blocks_nonce'); ?>',
+        totalBlocks: <?php echo count($all_blocks); ?>,
+        chunkSize: 10
     };
 </script>

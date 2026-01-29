@@ -55,6 +55,7 @@ class Block_Listing_Admin {
 		add_action('admin_menu', array($this, 'bl_add_plugin_admin_menu'));
 		add_filter('plugin_action_links_' . BLOCK_LISTING_BASENAME, array($this, 'bl_apd_settings_link') );
 		add_action('wp_ajax_bl_export_blocks_csv', array($this, 'bl_export_blocks_csv'));
+		add_action('wp_ajax_bl_load_blocks_chunk', array($this, 'bl_load_blocks_chunk'));
 	}
 
 	/**
@@ -211,6 +212,116 @@ class Block_Listing_Admin {
 		wp_send_json_success(array(
 			'csv' => $csv_content,
 			'filename' => 'blocks-usage-' . date('Y-m-d-His') . '.csv'
+		));
+	}
+
+	/**
+	 * Load blocks in chunks via AJAX
+	 *
+	 * @since    2.0.0
+	 */
+	public function bl_load_blocks_chunk() {
+		// Check nonce for security
+		check_ajax_referer('bl_blocks_nonce', 'nonce');
+
+		// Check user capabilities
+		if (!current_user_can('manage_options')) {
+			wp_send_json_error(array('message' => __('Unauthorized access', 'block-listing')));
+			return;
+		}
+
+		$offset = isset($_POST['offset']) ? intval($_POST['offset']) : 0;
+		$limit = isset($_POST['limit']) ? intval($_POST['limit']) : 10;
+
+		// Get all blocks data
+		$block_listing = new Block_Listing();
+		$all_blocks = $block_listing->bl_get_all_site_blocks();
+
+		if (empty($all_blocks)) {
+			wp_send_json_success(array(
+				'blocks' => array(),
+				'total' => 0,
+				'has_more' => false
+			));
+			return;
+		}
+
+		// Get total count
+		$total_blocks = count($all_blocks);
+
+		// Slice array to get current chunk
+		$blocks_chunk = array_slice($all_blocks, $offset, $limit, true);
+
+		// Prepare HTML for blocks
+		$html = '';
+		foreach ($blocks_chunk as $block_name => $block_data) {
+			ob_start();
+			?>
+			<div class="bl-block-with-pages">
+				<div class="bl-block-header">
+					<code class="bl-block-name"><?php echo esc_html($block_data['name']); ?></code>
+					<span class="bl-usage-count"><?php echo sprintf(__('Used on %d page(s)', 'block-listing'), count($block_data['pages'])); ?></span>
+				</div>
+				<div class="bl-block-pages">
+					<?php if (count($block_data['pages']) <= 3): ?>
+						<?php foreach ($block_data['pages'] as $page): ?>
+							<div class="bl-page-link">
+								<a href="<?php echo esc_url($page['edit_link']); ?>" target="_blank" title="<?php echo __('Edit', 'block-listing'); ?>">
+									<span class="dashicons dashicons-edit"></span>
+								</a>
+								<a href="<?php echo esc_url($page['view_link']); ?>" target="_blank" title="<?php echo __('View', 'block-listing'); ?>">
+									<?php echo esc_html($page['title']); ?>
+								</a>
+								<span class="bl-post-type">(<?php echo esc_html($page['post_type']); ?>)</span>
+							</div>
+						<?php endforeach; ?>
+					<?php else: ?>
+						<?php
+						$first_pages = array_slice($block_data['pages'], 0, 3);
+						$remaining_pages = array_slice($block_data['pages'], 3);
+						?>
+						<?php foreach ($first_pages as $page): ?>
+							<div class="bl-page-link">
+								<a href="<?php echo esc_url($page['edit_link']); ?>" target="_blank" title="<?php echo __('Edit', 'block-listing'); ?>">
+									<span class="dashicons dashicons-edit"></span>
+								</a>
+								<a href="<?php echo esc_url($page['view_link']); ?>" target="_blank" title="<?php echo __('View', 'block-listing'); ?>">
+									<?php echo esc_html($page['title']); ?>
+								</a>
+								<span class="bl-post-type">(<?php echo esc_html($page['post_type']); ?>)</span>
+							</div>
+						<?php endforeach; ?>
+
+						<details class="bl-more-pages-details">
+							<summary class="bl-show-more-pages">
+								<?php echo sprintf(__('+ Show %d more page(s)', 'block-listing'), count($remaining_pages)); ?>
+							</summary>
+							<div class="bl-remaining-pages">
+								<?php foreach ($remaining_pages as $page): ?>
+									<div class="bl-page-link">
+										<a href="<?php echo esc_url($page['edit_link']); ?>" target="_blank" title="<?php echo __('Edit', 'block-listing'); ?>">
+											<span class="dashicons dashicons-edit"></span>
+										</a>
+										<a href="<?php echo esc_url($page['view_link']); ?>" target="_blank" title="<?php echo __('View', 'block-listing'); ?>">
+											<?php echo esc_html($page['title']); ?>
+										</a>
+										<span class="bl-post-type">(<?php echo esc_html($page['post_type']); ?>)</span>
+									</div>
+								<?php endforeach; ?>
+							</div>
+						</details>
+					<?php endif; ?>
+				</div>
+			</div>
+			<?php
+			$html .= ob_get_clean();
+		}
+
+		wp_send_json_success(array(
+			'html' => $html,
+			'total' => $total_blocks,
+			'loaded' => $offset + count($blocks_chunk),
+			'has_more' => ($offset + $limit) < $total_blocks
 		));
 	}
 }

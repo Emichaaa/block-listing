@@ -124,6 +124,84 @@
 		// Debug: Log when script loads
 		console.log('Block Listing Kitchen Sink JS loaded');
 
+		// Load blocks in chunks
+		var blocksLoaded = 0;
+		var isLoading = false;
+
+		function loadBlocksChunk() {
+			if (isLoading) return;
+			isLoading = true;
+
+			$.ajax({
+				url: blData.ajaxUrl,
+				type: 'POST',
+				data: {
+					action: 'bl_load_blocks_chunk',
+					nonce: blData.blocksNonce,
+					offset: blocksLoaded,
+					limit: blData.chunkSize
+				},
+				success: function(response) {
+					isLoading = false;
+
+					if (response.success) {
+						// Hide initial loading message
+						$('.bl-loading-initial').hide();
+
+						// Show blocks list
+						$('#bl-blocks-list').show();
+
+						// Append new blocks
+						$('#bl-blocks-list').append(response.data.html);
+
+						// Update loaded count
+						blocksLoaded = response.data.loaded;
+						$('#bl-blocks-container').attr('data-loaded', blocksLoaded);
+
+						// Update loaded text
+						$('#bl-blocks-loaded-text').text('(Loaded ' + blocksLoaded + ' of ' + response.data.total + ')').show();
+
+						// Show/hide load more button
+						if (response.data.has_more) {
+							$('#bl-load-more-container').show();
+						} else {
+							$('#bl-load-more-container').hide();
+							$('#bl-blocks-loaded-text').text('(All blocks loaded)');
+						}
+					} else {
+						alert('Failed to load blocks: ' + (response.data.message || 'Unknown error'));
+					}
+				},
+				error: function(xhr, status, error) {
+					isLoading = false;
+					console.error('Load blocks error:', error);
+					$('.bl-loading-initial').html('<p style="color: #d63638;">Failed to load blocks. Please refresh the page.</p>');
+				}
+			});
+		}
+
+		// Load initial chunk on page load
+		if ($('#bl-blocks-container').length && blData.totalBlocks > 0) {
+			loadBlocksChunk();
+		}
+
+		// Load more button click handler
+		$(document).on('click', '#bl-load-more-blocks', function(e) {
+			e.preventDefault();
+			var $button = $(this);
+			var originalHTML = $button.html();
+
+			$button.prop('disabled', true);
+			$button.html('<span class="dashicons dashicons-update-alt bl-spin"></span> Loading...');
+
+			loadBlocksChunk();
+
+			setTimeout(function() {
+				$button.prop('disabled', false);
+				$button.html(originalHTML);
+			}, 500);
+		});
+
 		// Export to CSV functionality
 		$(document).on('click', '#bl-export-blocks-csv', function(e) {
 			e.preventDefault();
@@ -137,11 +215,11 @@
 
 			// Make AJAX request
 			$.ajax({
-				url: blExportData.ajaxUrl,
+				url: blData.ajaxUrl,
 				type: 'POST',
 				data: {
 					action: 'bl_export_blocks_csv',
-					nonce: blExportData.nonce
+					nonce: blData.exportNonce
 				},
 				success: function(response) {
 					if (response.success) {
