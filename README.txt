@@ -67,6 +67,10 @@ directory take precedence. For example, `/assets/screenshot-1.png` would win ove
 
 == Changelog ==
 
+= 2.0.1 =
+* Add export used blocks to csv;
+
+
 = 1.0 =
 * A change since the previous version.
 * Another change.

@@ -826,6 +826,53 @@
     margin-bottom: 0;
 }
 
+/* Export Button Styles */
+.bl-section-header-with-button {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 15px;
+}
+
+.bl-section-header-with-button > div {
+    flex: 1;
+}
+
+.bl-export-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.bl-export-btn .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+.bl-export-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Spinning animation for loading state */
+@keyframes bl-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.bl-spin {
+    animation: bl-spin 1s linear infinite;
+    display: inline-block;
+}
+
 /* Responsive Design */
 @media screen and (max-width: 1200px) {
     .bl-kitchen-sink-grid {
@@ -854,5 +901,16 @@
 
     .bl-pattern-categories {
         font-size: 11px;
+    }
+
+    .bl-section-header-with-button {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+
+    .bl-export-btn {
+        width: 100%;
+        justify-content: center;
     }
 }

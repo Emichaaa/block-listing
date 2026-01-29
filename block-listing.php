@@ -16,7 +16,7 @@
  * Plugin Name:       Block listing
  * Plugin URI:        https://growscratch.com
  * Description:       This is a plugin with which you can find out which blocks and on which pages are used on your site.
- * Version:           2.0.0
+ * Version:           2.0.1
  * Author:            Emicha
  * Author URI:        https://growscratch.com/
  * License:           GPL-2.0+
@@ -35,8 +35,8 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'BLOCK_LISTING_VERSION', '2.0.0' );
-define('BLOCK_LISTING_BASENAME', plugin_basename(__FILE__));
+define( 'BLOCK_LISTING_VERSION', '2.0.1' );
+define( 'BLOCK_LISTING_BASENAME', plugin_basename( __FILE__ ) );
 
 /**
  * The code that runs during plugin activation.
@@ -84,4 +84,5 @@ function run_block_listing() {
 	$plugin_shortcodes = new Block_Listing_Shortcodes();
 
 }
+
 run_block_listing();

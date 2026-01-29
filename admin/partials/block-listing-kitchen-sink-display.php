@@ -45,8 +45,15 @@ $theme_classes = $block_listing->bl_get_theme_css_classes();
 
         <!-- All Blocks Section -->
         <div class="bl-section bl-blocks-section">
-            <h2><span class="dashicons dashicons-block-default"></span> <?php echo __('All Blocks Used', 'block-listing'); ?></h2>
-            <p class="section-description"><?php echo sprintf(__('Total: %d unique blocks', 'block-listing'), count($all_blocks)); ?></p>
+            <div class="bl-section-header-with-button">
+                <div>
+                    <h2><span class="dashicons dashicons-block-default"></span> <?php echo __('All Blocks Used', 'block-listing'); ?></h2>
+                    <p class="section-description"><?php echo sprintf(__('Total: %d unique blocks', 'block-listing'), count($all_blocks)); ?></p>
+                </div>
+                <button id="bl-export-blocks-csv" class="button button-primary bl-export-btn">
+                    <span class="dashicons dashicons-download"></span> <?php echo __('Export to CSV', 'block-listing'); ?>
+                </button>
+            </div>
             <div class="bl-items-container">
                 <?php if (!empty($all_blocks)): ?>
                     <?php foreach ($all_blocks as $block_name => $block_data): ?>
@@ -432,3 +439,10 @@ $theme_classes = $block_listing->bl_get_theme_css_classes();
 
     </div>
 </div>
+
+<script type="text/javascript">
+    var blExportData = {
+        ajaxUrl: '<?php echo admin_url('admin-ajax.php'); ?>',
+        nonce: '<?php echo wp_create_nonce('bl_export_blocks_nonce'); ?>'
+    };
+</script>

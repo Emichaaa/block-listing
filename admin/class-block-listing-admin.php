@@ -54,6 +54,7 @@ class Block_Listing_Admin {
 
 		add_action('admin_menu', array($this, 'bl_add_plugin_admin_menu'));
 		add_filter('plugin_action_links_' . BLOCK_LISTING_BASENAME, array($this, 'bl_apd_settings_link') );
+		add_action('wp_ajax_bl_export_blocks_csv', array($this, 'bl_export_blocks_csv'));
 	}
 
 	/**
@@ -144,5 +145,72 @@ class Block_Listing_Admin {
 		$settings_link = '<a href="' . admin_url('options-general.php?page=block-listing-settings') . '">Settings</a>';
 		array_unshift($links, $settings_link);
 		return $links;
+	}
+
+	/**
+	 * Export blocks and their pages to CSV
+	 *
+	 * @since    2.0.0
+	 */
+	public function bl_export_blocks_csv() {
+		// Check nonce for security
+		check_ajax_referer('bl_export_blocks_nonce', 'nonce');
+
+		// Check user capabilities
+		if (!current_user_can('manage_options')) {
+			wp_send_json_error(array('message' => __('Unauthorized access', 'block-listing')));
+			return;
+		}
+
+		// Get all blocks data
+		$block_listing = new Block_Listing();
+		$all_blocks = $block_listing->bl_get_all_site_blocks();
+
+		if (empty($all_blocks)) {
+			wp_send_json_error(array('message' => __('No blocks found to export', 'block-listing')));
+			return;
+		}
+
+		// Prepare CSV data
+		$csv_data = array();
+
+		// Add header row
+		$csv_data[] = array(
+			__('Block Name', 'block-listing'),
+			__('Page Title', 'block-listing'),
+			__('Post Type', 'block-listing'),
+			__('Edit Link', 'block-listing'),
+			__('View Link', 'block-listing')
+		);
+
+		// Add data rows
+		foreach ($all_blocks as $block_name => $block_data) {
+			if (!empty($block_data['pages'])) {
+				foreach ($block_data['pages'] as $page) {
+					$csv_data[] = array(
+						$block_data['name'],
+						$page['title'],
+						$page['post_type'],
+						$page['edit_link'],
+						$page['view_link']
+					);
+				}
+			}
+		}
+
+		// Generate CSV content
+		$output = fopen('php://temp', 'r+');
+		foreach ($csv_data as $row) {
+			fputcsv($output, $row);
+		}
+		rewind($output);
+		$csv_content = stream_get_contents($output);
+		fclose($output);
+
+		// Return CSV content as JSON
+		wp_send_json_success(array(
+			'csv' => $csv_content,
+			'filename' => 'blocks-usage-' . date('Y-m-d-His') . '.csv'
+		));
 	}
 }
